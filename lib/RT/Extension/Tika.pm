@@ -2,22 +2,32 @@ use strict;
 use warnings;
 package rt::extension::tika;
 
+use Apache::Tika;
+use LWP;
+
 our $VERSION = '0.01';
 
 =head1 NAME
 
-rt-extension-tika - [One line description of module's purpose here]
+rt-extension-tika - adds Apache Tika document conversion for full text search
 
 =head1 DESCRIPTION
 
-[Why would someone install this extension? What does it do? What problem
-does it solve?]
+RT has the option of providing full text search through the features of the 
+underlying database, but it can only search attachments that are in plain
+text and html.  If your organization uses typical office software, it will
+often be handy to add documents to a ticket in various office document formats.
+This module makes those document attachments searchable through the same
+full text search as the rest of your tickets.
+
+Apache Tika is a project that extracts plain text from various document formats
+for use in search engines.  This plugin requires running a tika-server process
+either on the same machine as RT or on another machine, to provide the text 
+extraction for the different supported document types.
 
 =head1 RT VERSION
 
-Works with RT [What versions of RT is this known to work with?]
-
-[Make sure to use requires_rt and rt_too_new in Makefile.PL]
+Works with RT 4.4.1.
 
 =head1 INSTALLATION
 
