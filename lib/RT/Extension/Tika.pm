@@ -1,9 +1,10 @@
 use strict;
 use warnings;
-package rt::extension::tika;
+package RT::Extension::Tika;
 
 use Apache::Tika;
-use LWP;
+use File::MimeInfo::Magic qw/ mimetype /;
+use IO::Scalar;
 
 our $VERSION = '0.01';
 
@@ -84,5 +85,19 @@ This is free software, licensed under:
   The GNU General Public License, Version 2, June 1991
 
 =cut
+
+sub extract {
+	my ($filename) = @_;
+	my $tika = Apache::Tika->new();
+
+	open my $fh, "< $filename";
+	my $file = do { local $/;  <$fh> };
+	close $fh;
+
+	my $io = new IO::Scalar \$file;
+        my $mime_type = mimetype($io);
+
+	return $tika->tika($file,$mime_type);
+}
 
 1;
