@@ -86,13 +86,17 @@ This is free software, licensed under:
 
 =cut
 
-sub extract {
+sub extractFile {
 	my ($filename) = @_;
-	my $tika = Apache::Tika->new();
-
 	open my $fh, "< $filename";
 	my $file = do { local $/;  <$fh> };
 	close $fh;
+	return extract($file);
+}
+
+sub extract {
+	my ($file) = @_;
+	my $tika = Apache::Tika->new();
 
 	my $io = new IO::Scalar \$file;
         my $mime_type = mimetype($io);

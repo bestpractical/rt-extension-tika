@@ -1,6 +1,6 @@
 use inc::Module::Install;
 
-RTx     'rt-extension-tika';
+RTx     'RT-Extension-Tika';
 license 'gplv2';
 repository 'https://github.com/bestpractical/rt-extension-tika';
 
