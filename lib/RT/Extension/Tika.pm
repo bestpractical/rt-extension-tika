@@ -46,19 +46,51 @@ May need root permissions
 
 If you are using RT 4.2 or greater, add this line:
 
-    Plugin('rt::extension::tika');
+    Plugin('RT::Extension::Tika');
 
 For RT 4.0, add this line:
 
-    Set(@Plugins, qw(rt::extension::tika));
+    Set(@Plugins, qw(RT::Extension::Tika));
 
 or add C<rt::extension::tika> to your existing C<@Plugins> line.
+
+By default this extension will index text, html, pdf, doc, and docx files.
+You can add additional mime types by adding them to a list:
+
+    Set(@TikaMimeTypes,'application/rtf','application/x-rtf',
+         'application/vnd.oasis.opendocument.text',
+         'application/vnd.oasis.opendocument.text-master');
 
 =item Clear your mason cache
 
     rm -rf /opt/rt4/var/mason_data/obj
 
 =item Restart your webserver
+
+=item Start the tika server
+
+From  the /opt/rt4 directory you can start the server using:
+
+    ./local/plugins/RT-Extension-Tika/sbin/start-tika-server
+
+Optionally you can run it via java as:
+
+    java -jar /opt/rt4/local/plugins/RT-Extension-Tika/lib/auto/share/dist/RT-Extension-Tika/tika-server.jar
+
+You can get a list of options (host, port, CORS) by running:
+
+    java -jar /opt/rt4/local/plugins/RT-Extension-Tika/lib/auto/share/dist/RT-Extension-Tika/tika-server.jar -?
+
+By default the server will listen on localhost:9998
+
+=item Add the indexer to a cron job
+
+In the directory /opt/rt4 you can run the indexer as:
+
+	./local/plugins/RT-Extension-Tika/sbin/rt-tika-fulltext-indexer
+
+This indexer replaces the rt-fulltext-indexer.  If you are
+currently running that make sure that job first.
 
 =back
 

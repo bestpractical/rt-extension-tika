@@ -1,0 +1,3 @@
+#!/bin/bash
+
+java -jar $(dirname 1)/local/plugins/RT-Extension-Tika/lib/auto/share/dist/RT-Extension-Tika/tika-server.jar
