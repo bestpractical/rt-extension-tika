@@ -83,6 +83,10 @@ You can get a list of options (host, port, CORS) by running:
 
 By default the server will listen on localhost:9998
 
+If you change the default path you will need to set the TikaURL in your RT_SiteConfig.pm
+
+    Set($TikaURL, 'http://someotherhost:9998/');
+
 =item Add the indexer to a cron job
 
 In the directory /opt/rt4 you can run the indexer as:
@@ -128,7 +132,8 @@ sub extractFile {
 
 sub extract {
 	my ($file) = @_;
-	my $tika = Apache::Tika->new();
+	my $url = RT->Config->Get('TikaUrl') || 'http://localhost:9998/';
+	my $tika = Apache::Tika->new( url => $url );
 
 	my $io = new IO::Scalar \$file;
         my $mime_type = mimetype($io);
