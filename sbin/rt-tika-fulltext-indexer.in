@@ -174,11 +174,10 @@ sub attachment_loop {
     {
         # Indexes all text/plain and text/html attachments
         my $attachments = RT::Attachments->new( RT->SystemUser );
-	my @extra = (RT->Config->Get('TikaMimeTypes'));
-	my @MIMETYPES = ( 'text/plain', 'text/html','application/pdf', 
+	my @MIMETYPES = (RT->Config->Get('TikaMimeTypes')) || 
+		( 'text/plain', 'text/html','application/pdf', 
 		'application/msword', 
 		'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-		@extra
 	);
         my $txn_alias = $attachments->Join(
             ALIAS1 => 'main',

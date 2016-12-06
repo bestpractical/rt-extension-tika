@@ -122,22 +122,12 @@ This is free software, licensed under:
 
 =cut
 
-sub extractFile {
-	my ($filename) = @_;
-	open my $fh, "< $filename";
-	my $file = do { local $/;  <$fh> };
-	close $fh;
-	return extract($file);
-}
-
 sub extract {
 	my ($file) = @_;
 	my $url = RT->Config->Get('TikaUrl') || 'http://localhost:9998/';
 	my $tika = Apache::Tika->new( url => $url );
-
 	my $io = new IO::Scalar \$file;
         my $mime_type = mimetype($io);
-
 	return $tika->tika($file,$mime_type);
 }
 
