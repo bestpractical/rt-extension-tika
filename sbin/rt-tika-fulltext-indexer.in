@@ -51,6 +51,7 @@
 use strict;
 use warnings;
 use 5.010;
+use Data::Dumper;
 
 ### after:     use lib qw(@RT_LIB_PATH@);
     use lib qw(/opt/rt4/local/lib /opt/rt4/lib);
@@ -174,11 +175,11 @@ sub attachment_loop {
     {
         # Indexes all text/plain and text/html attachments
         my $attachments = RT::Attachments->new( RT->SystemUser );
-	my @MIMETYPES = (RT->Config->Get('TikaMimeTypes')) || 
-		( 'text/plain', 'text/html','application/pdf', 
+	my @MIMETYPES = @{ RT->Config->Get('TikaMimeTypes') ||
+		[ 'text/plain', 'text/html','application/pdf', 
 		'application/msword', 
-		'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-	);
+		'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ] };
+
         my $txn_alias = $attachments->Join(
             ALIAS1 => 'main',
             FIELD1 => 'TransactionId',
