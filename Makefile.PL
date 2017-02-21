@@ -38,7 +38,7 @@ print STDERR Dumper  \@tools;
 
 substitute(
 	{ 
-		PERL => $ENV{PERL} || $secure_perl_path,
+		PERL => $ENV{'PERL'} || $secure_perl_path,
 		RT_LIB_PATH => join(' ',$local_lib_path,$lib_path ) 
 	}, {
 		sufix => '.in'
@@ -46,7 +46,6 @@ substitute(
 	@tools
 ) if @tools; 
 
-requires 'Apache::Tika';
 requires 'File::MimeInfo::Magic';
 requires 'IO::Scalar';
 

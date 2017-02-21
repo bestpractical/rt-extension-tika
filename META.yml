@@ -19,7 +19,6 @@ no_index:
     - inc
     - jar
 requires:
-  Apache::Tika: 0
   File::MimeInfo::Magic: 0
   IO::Scalar: 0
   perl: 5.10.1

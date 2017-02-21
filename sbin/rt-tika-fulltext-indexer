@@ -1,4 +1,4 @@
-#!/usr/bin/perl
+#!/home/desktop/perl5/perlbrew/perls/perl-5.24.0/bin/perl
 ### before: #!@PERL@
 #
 # BEGIN BPS TAGGED BLOCK {{{
@@ -51,6 +51,7 @@
 use strict;
 use warnings;
 use 5.010;
+use Data::Dumper;
 
 ### after:     use lib qw(@RT_LIB_PATH@);
     use lib qw(/opt/rt4/local/lib /opt/rt4/lib);
@@ -174,12 +175,11 @@ sub attachment_loop {
     {
         # Indexes all text/plain and text/html attachments
         my $attachments = RT::Attachments->new( RT->SystemUser );
-	my @extra = (RT->Config->Get('TikaMimeTypes'));
-	my @MIMETYPES = ( 'text/plain', 'text/html','application/pdf', 
+	my @MIMETYPES = @{ RT->Config->Get('TikaMimeTypes') ||
+		[ 'text/plain', 'text/html','application/pdf', 
 		'application/msword', 
-		'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-		@extra
-	);
+		'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ] };
+
         my $txn_alias = $attachments->Join(
             ALIAS1 => 'main',
             FIELD1 => 'TransactionId',
@@ -227,7 +227,7 @@ sub process_bulk_insert {
         my @insert;
         my $found = 0;
 
-        while ( my $a = $attachments->Next ) {
+        ATTACHMENT: while ( my $a = $attachments->Next ) {
             debug("Found attachment #". $a->id );
             if ( $max_size and $a->ContentLength > $max_size ){
                 debug("Attachment #" . $a->id . " is " . $a->ContentLength .
@@ -237,9 +237,16 @@ sub process_bulk_insert {
             }
 
             my $text = $a->Content // "";
-	    if ($a->ContentType ne "text/html" and $a->ContentType ne "text/plain" ) {
-			$text = RT::Extension::Tika::extract($a->Content);	
-	    }
+            my $err;
+            if ($a->ContentType ne "text/html" and $a->ContentType ne "text/plain" ) {
+                ($text,$err) = RT::Extension::Tika::extract($a->Content);
+            }
+            # if an error occured processing the attachment log it,
+            # and move on to the next attachment
+             if ($err) {
+                debug("Failed to process attachment " . $a->id . " : " .$err);
+                next ATTACHMENT;
+            }
             HTML::Entities::decode_entities($text) if $a->ContentType eq "text/html";
             push @insert, join("\n", $a->Subject // "", $text), $a->id;
             $found++;

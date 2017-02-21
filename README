@@ -42,7 +42,24 @@ INSTALLATION
 
             Set(@TikaMimeTypes,'application/rtf','application/x-rtf',
                  'application/vnd.oasis.opendocument.text',
-                 'application/vnd.oasis.opendocument.text-master');
+                 'application/vnd.oasis.opendocument.text-master',
+                 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' 
+                 'application/msword',
+                'application/vnd.ms-excel',
+                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' 
+        
+            );
+
+        You will also need to configure the full text search as with typical
+        RT:
+
+            Set( %FullTextSearch,
+                Enable     => 1,
+                Indexed    => 1,
+                Table      => 'Attachments',
+                Column     => 'ContentIndex',
+            );
+
 
     Clear your mason cache
             rm -rf /opt/rt4/var/mason_data/obj
@@ -94,4 +111,11 @@ LICENSE AND COPYRIGHT
     This is free software, licensed under:
 
       The GNU General Public License, Version 2, June 1991
+
+POD ERRORS
+    Hey! The above document had some coding errors, which are explained
+    below:
+
+    Around line 75:
+        Expected text after =item, not a bullet
 

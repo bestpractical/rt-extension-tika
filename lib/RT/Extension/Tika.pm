@@ -2,9 +2,9 @@ use strict;
 use warnings;
 package RT::Extension::Tika;
 
-use Apache::Tika;
 use File::MimeInfo::Magic qw/ mimetype /;
 use IO::Scalar;
+use LWP::UserAgent;
 
 our $VERSION = '0.01';
 
@@ -26,6 +26,9 @@ for use in search engines.  This plugin requires running a tika-server process
 either on the same machine as RT or on another machine, to provide the text 
 extraction for the different supported document types.
 
+Currently this module only supports MySQL and PostgreSQL databases for indexing.
+
+
 =head1 RT VERSION
 
 Works with RT 4.4.1.
@@ -42,6 +45,24 @@ Works with RT 4.4.1.
 
 May need root permissions
 
+=item Configure Full text indexing
+
+In order to use this extension, you will first need to configure
+your RT to use fulltext indexing by running the script:
+    
+    /opt/rt4/sbin/rt-setup-fulltext-index
+
+This will create a new table in your database and prompt you to
+configure your F</opt/rt4/etc/RT_SiteConfig.pm> for your particular
+database configuration, such as: 
+
+    Set( %FullTextSearch,
+        Enable     => 1,
+        Indexed    => 1,
+        Table      => 'AttachmentsIndex'
+    );
+
+
 =item Edit your F</opt/rt4/etc/RT_SiteConfig.pm>
 
 If you are using RT 4.2 or greater, add this line:
@@ -54,18 +75,31 @@ For RT 4.0, add this line:
 
 or add C<rt::extension::tika> to your existing C<@Plugins> line.
 
-By default this extension will index text, html, pdf, doc, and docx files.
-You can add additional mime types by adding them to a list:
+To select the attachment types to index, set the C<@TikaMimeTypes>
+value to a list of mime types for indexing:
 
-    Set(@TikaMimeTypes,'application/rtf','application/x-rtf',
-         'application/vnd.oasis.opendocument.text',
-         'application/vnd.oasis.opendocument.text-master');
+    Set(@TikaMimeTypes,
+            'text/plain',
+            'text/html',
+            'application/zip',
+            'application/pdf',
+            'application/vnd.oasis.opendocument.text',
+            'application/vnd.oasis.opendocument.text-master',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/msword',
+            'application/vnd.ms-excel',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'application/rtf',
+            'application/x-rtf'
+    );
 
-=item Clear your mason cache
+The above list contains plain text, html, pdfs, OpenOffice, Microsoft Word and Excel files.
 
-    rm -rf /opt/rt4/var/mason_data/obj
+If you want to run the Tika server on a different host from your RT instance you can 
+configure the C<$TikaURL> value to point it at that host:
 
-=item Restart your webserver
+    Set($TikaURL, 'http://someotherhost:9998/');
+
 
 =item Start the tika server
 
@@ -82,10 +116,6 @@ You can get a list of options (host, port, CORS) by running:
     java -jar /opt/rt4/local/plugins/RT-Extension-Tika/lib/auto/share/dist/RT-Extension-Tika/tika-server.jar -?
 
 By default the server will listen on localhost:9998
-
-If you change the default path you will need to set the TikaURL in your RT_SiteConfig.pm
-
-    Set($TikaURL, 'http://someotherhost:9998/');
 
 =item Add the indexer to a cron job
 
@@ -122,13 +152,37 @@ This is free software, licensed under:
 
 =cut
 
+
+sub config_url {
+    RT->Config->Get('TikaUrl') || 'http://localhost:9998/';
+}
+
+sub mime_file {
+    my ($file) = @_;
+	my $io = new IO::Scalar \$file;
+    mimetype($io);
+}
+
+sub request {
+    my($url,$file,$mimetype) = @_;
+    my $ua = LWP::UserAgent->new();
+    $ua->put($url . "/tika", 
+        'Accept' => 'text/plain',
+        'Content-Type' => $mimetype,
+        'Content' => $file
+    );
+}
+
 sub extract {
 	my ($file) = @_;
-	my $url = RT->Config->Get('TikaUrl') || 'http://localhost:9998/';
-	my $tika = Apache::Tika->new( url => $url );
-	my $io = new IO::Scalar \$file;
-        my $mime_type = mimetype($io);
-	return $tika->tika($file,$mime_type);
+	my $url = config_url;
+    my $mime_type = mime_file($file);
+    my $response = request($url,$file,$mime_type);
+    print STDERR "$mime_type\n";
+    if ($response->is_error) {
+        return ('', $response->message || 'error'); 
+    } 
+    return ($response->content);
 }
 
 1;
