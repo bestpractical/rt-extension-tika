@@ -128,6 +128,18 @@ currently running that make sure that job first.
 
 =back
 
+=head1 TESTING
+
+In order to run the unit tests for this extension, you should:
+
+    java -jar jar/tika-server.jar &
+    prove -I/opt/rt4/lib t/tika.t
+
+These tests require that the server be running locally on the
+default port in order to work.  The sample test files are in
+the t/docs/ directory, and are loaded relative to the current
+working directory.
+
 =head1 AUTHOR
 
 Best Practical Solutions, LLC E<lt>modules@bestpractical.comE<gt>
